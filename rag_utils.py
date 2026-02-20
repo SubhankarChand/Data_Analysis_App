@@ -6,6 +6,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGener
 from langchain_community.vectorstores import FAISS
 from langchain_classic.chains.question_answering import load_qa_chain
 from langchain_core.prompts import PromptTemplate
+from langchain_community.embeddings import HuggingFaceEmbeddings
 # 1. Extract Text from the Uploaded File
 def extract_text_from_file(uploaded_file):
     # Create a temporary file to allow LangChain loaders to read it
@@ -41,7 +42,7 @@ def get_text_chunks(text):
 # 3. Create Embeddings and Store in FAISS
 def get_vector_store(text_chunks):
     # Using Gemini's embedding model
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     
     # Create the local vector database
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)

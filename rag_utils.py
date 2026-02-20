@@ -1,81 +1,67 @@
-import streamlit as st
 import tempfile
 import os
-from langchain_experimental.agents import create_csv_agent
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from dotenv import load_dotenv
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_community.vectorstores import FAISS
+from langchain_classic.chains.question_answering import load_qa_chain
+from langchain_core.prompts import PromptTemplate
+# 1. Extract Text from the Uploaded File
+def extract_text_from_file(uploaded_file):
+    # Create a temporary file to allow LangChain loaders to read it
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded_file.name.split('.')[-1]}") as tmp_file:
+        tmp_file.write(uploaded_file.getvalue())
+        tmp_file_path = tmp_file.name
 
-# Import the RAG functions from your rag_utils.py file
-from rag_utils import extract_text_from_file, get_text_chunks, get_vector_store, get_conversational_chain
+    try:
+        if uploaded_file.name.endswith('.pdf'):
+            loader = PyPDFLoader(tmp_file_path)
+            pages = loader.load_and_split()
+        elif uploaded_file.name.endswith('.docx'):
+            loader = Docx2txtLoader(tmp_file_path)
+            pages = loader.load()
+        else:
+            raise ValueError("Unsupported file format")
+            
+        # Combine all pages into one large string of text
+        text = "".join([page.page_content for page in pages])
+        return text
+    finally:
+        os.remove(tmp_file_path) # Always clean up
 
-def main():
-    load_dotenv()
-    st.set_page_config(page_title="Ask your Files 📊", page_icon="📊")
-    st.header("Ask your Files 📊")
+# 2. Split Text into Chunks
+def get_text_chunks(text):
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=10000, 
+        chunk_overlap=1000
+    )
+    chunks = text_splitter.split_text(text)
+    return chunks
+
+# 3. Create Embeddings and Store in FAISS
+def get_vector_store(text_chunks):
+    # Using Gemini's embedding model
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
     
-    # 1. Update uploader to accept multiple file types
-    uploaded_file = st.file_uploader("Upload your file here (CSV, PDF, DOCX)", type=["csv", "pdf", "docx"])
+    # Create the local vector database
+    vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
+    return vector_store
+
+# 4. Setup the QA Chain
+def get_conversational_chain():
+    prompt_template = """
+    Answer the question as detailed as possible from the provided context. If the answer is not in
+    the provided context, just say, "The answer is not available in the context." Do not provide the wrong answer.
     
-    if uploaded_file is not None:
-        # Determine the file extension
-        file_extension = uploaded_file.name.split('.')[-1].lower()
-        
-        user_question = st.text_input(f"Ask a question about your {file_extension.upper()} file: ")
-        
-        if user_question:
-            with st.spinner("Analyzing..."):
-                try:
-                    # ==========================================
-                    # ROUTE 1: CSV DATA ANALYSIS (Using Agent)
-                    # ==========================================
-                    if file_extension == "csv":
-                        # Save Streamlit file to a temporary physical file
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp_file:
-                            tmp_file.write(uploaded_file.getvalue())
-                            tmp_file_path = tmp_file.name
-                        
-                        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
-                        
-                        agent = create_csv_agent(
-                            llm, 
-                            tmp_file_path, 
-                            verbose=True,
-                            allow_dangerous_code=True 
-                        )
-                        
-                        response = agent.invoke(user_question)
-                        st.write(f"**Answer:** {response['output']}")
-                        
-                        # Clean up
-                        os.remove(tmp_file_path)
-
-                    # ==========================================
-                    # ROUTE 2: PDF & DOCX ANALYSIS (Using RAG)
-                    # ==========================================
-                    elif file_extension in ["pdf", "docx"]:
-                        # 1. Extract text using the function from rag_utils
-                        raw_text = extract_text_from_file(uploaded_file)
-                        
-                        # 2. Chunk text
-                        text_chunks = get_text_chunks(raw_text)
-                        
-                        # 3. Create Vector Store
-                        vector_store = get_vector_store(text_chunks)
-                        
-                        # 4. Search for relevant information
-                        docs = vector_store.similarity_search(user_question)
-                        
-                        # 5. Pass to the QA Chain
-                        chain = get_conversational_chain()
-                        response = chain.invoke(
-                            {"input_documents": docs, "question": user_question},
-                            return_only_outputs=True
-                        )
-                        
-                        st.write(f"**Answer:** {response['output_text']}")
-
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-
-if __name__ == "__main__":
-    main()
+    Context:\n {context}?\n
+    Question: \n{question}\n
+    
+    Answer:
+    """
+    
+    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
+    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
+    
+    # load_qa_chain handles passing the retrieved documents to the LLM
+    chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
+    return chain

@@ -102,10 +102,14 @@ def main():
             st.session_state.messages = []
 
         # ==========================================
-        # ROUTE 1: CSV DATA ANALYSIS & PYGWALKER DASHBOARD
+        # ROUTE 1: CSV & EXCEL DATA ANALYSIS & PYGWALKER DASHBOARD
         # ==========================================
-        if file_extension == "csv":
-            df = pd.read_csv(uploaded_file)
+        if file_extension in ["csv", "xlsx"]:
+            # 1. Read the file into a Pandas DataFrame based on its extension
+            if file_extension == "csv":
+                df = pd.read_csv(uploaded_file)
+            elif file_extension == "xlsx":
+                df = pd.read_excel(uploaded_file) # Requires openpyxl installed
             
             # The tabs that separate Chat from the PyGWalker Dashboard
             tab1, tab2 = st.tabs(["💬 AI Chat Analyst", "📈 PyGWalker Dashboard"])
@@ -115,15 +119,16 @@ def main():
                     with st.chat_message(message["role"]):
                         st.markdown(message["content"])
 
-                if user_question := st.chat_input("Ask a question about your CSV file:"):
+                if user_question := st.chat_input("Ask a question about your data:"):
                     st.session_state.messages.append({"role": "user", "content": user_question})
                     with st.chat_message("user"):
                         st.markdown(user_question)
                         
                     with st.spinner("Analyzing data..."):
                         try:
+                            # 2. Save the dataframe to a temporary CSV so the agent can read it
                             with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp_file:
-                                tmp_file.write(uploaded_file.getvalue())
+                                df.to_csv(tmp_file.name, index=False)
                                 tmp_file_path = tmp_file.name
                                 
                             llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
@@ -150,7 +155,7 @@ def main():
                 st.info("Drag and drop your columns from the left panel onto the X and Y axes to build custom charts.")
                 renderer = get_pyg_renderer(df)
                 renderer.explorer()
-
+                
         # ==========================================
         # ROUTE 2: PDF & DOCX ANALYSIS
         # ==========================================

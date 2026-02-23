@@ -68,17 +68,17 @@ streamlit run main.py
 ```
 ---
 # 💡 Usage Guide
-* ** Upload a File:** Use the sidebar to upload a .csv, .xlsx, .pdf, or .docx file.
+*  Upload a File: Use the sidebar to upload a .csv, .xlsx, .pdf, or .docx file.
 
-* ** Tabular Data (CSV/XLSX):** Navigate to the 💬 AI Chat Analyst tab to ask questions and generate AI charts.
+*  Tabular Data (CSV/XLSX): Navigate to the 💬 AI Chat Analyst tab to ask questions and generate AI charts.
 
-* ** Navigate to the 📈 PyGWalker Dashboard tab to manually drag and drop columns into custom charts.
+*  Navigate to the 📈 PyGWalker Dashboard tab to manually drag and drop columns into custom charts.
 
-* ** Unstructured Data (PDF/DOCX):** Ask questions about the document's content, and the RAG pipeline will extract the relevant context to answer.
+*  Unstructured Data (PDF/DOCX): Ask questions about the document's content, and the RAG pipeline will extract the relevant context to answer.
 
-* ** Generate Reports:** Once you have analyzed your data, open the left sidebar and click Generate Reports (HTML & PDF) to download a summary of your findings.
+*  Generate Reports: Once you have analyzed your data, open the left sidebar and click Generate Reports (HTML & PDF) to download a summary of your findings.
 
-* ** Clear Chat:** Use the trash can icon in the sidebar to wipe the AI's memory before uploading a new, unrelated document.
+*  Clear Chat: Use the trash can icon in the sidebar to wipe the AI's memory before uploading a new, unrelated document.
   ---
 
 # 🔒 Security Note

@@ -66,6 +66,7 @@ Run the application:
 ```bash
 streamlit run main.py
 ```
+---
 # 💡 Usage Guide
 * ** Upload a File:** Use the sidebar to upload a .csv, .xlsx, .pdf, or .docx file.
 
@@ -78,6 +79,7 @@ streamlit run main.py
 * ** Generate Reports:** Once you have analyzed your data, open the left sidebar and click Generate Reports (HTML & PDF) to download a summary of your findings.
 
 * ** Clear Chat:** Use the trash can icon in the sidebar to wipe the AI's memory before uploading a new, unrelated document.
+  ---
 
 # 🔒 Security Note
 This application utilizes LangChain's allow_dangerous_code=True parameter to allow the Pandas agent to execute Python code dynamically. It is intended for local execution, portfolio demonstration, or containerized/sandboxed deployments.

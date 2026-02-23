@@ -41,28 +41,31 @@ This tool allows users to upload raw tabular data (CSV, Excel) or unstructured d
    git clone [https://github.com/yourusername/your-repo-name.git](https://github.com/yourusername/your-repo-name.git)
    cd your-repo-name
 Create and activate a virtual environment:
-
-Bash
+```bash
 python -m venv venv
-
+ ```
 # On Windows:
+ ```bash
 .\venv\Scripts\activate
+```
 
-# On Mac/Linux:
-source venv/bin/activate
 Install the dependencies:
-
-Bash
+```bash
 pip install -r requirements.txt
+```
+
 Set up environment variables:
 Create a .env file in the root directory of the project and add your Gemini API key:
 
 Code snippet
+```bash
 GEMINI_API_KEY="your_actual_api_key_here"
-Run the application:
+```
 
-Bash
+Run the application:
+```bash
 streamlit run main.py
+```
  #💡 Usage Guide
 Upload a File: Use the sidebar to upload a .csv, .xlsx, .pdf, or .docx file.
 

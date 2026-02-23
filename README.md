@@ -63,7 +63,7 @@ Run the application:
 
 Bash
 streamlit run main.py
- 💡 Usage Guide
+ #💡 Usage Guide
 Upload a File: Use the sidebar to upload a .csv, .xlsx, .pdf, or .docx file.
 
 Tabular Data (CSV/XLSX): * Navigate to the 💬 AI Chat Analyst tab to ask questions and generate AI charts.
@@ -76,7 +76,7 @@ Generate Reports: Once you have analyzed your data, open the left sidebar and cl
 
 Clear Chat: Use the trash can icon in the sidebar to wipe the AI's memory before uploading a new, unrelated document.
 
-🔒 Security Note
+# 🔒 Security Note
 This application utilizes LangChain's allow_dangerous_code=True parameter to allow the Pandas agent to execute Python code dynamically. It is intended for local execution, portfolio demonstration, or containerized/sandboxed deployments.
 
 ## 📄 License
